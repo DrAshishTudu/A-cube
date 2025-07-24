@@ -65,40 +65,42 @@ def add_indicators(df):
     return df
 
 
-
 def predict_price(df):
-    df['timestamp'] = pd.to_datetime(df['Datetime'], errors='coerce').astype('int64') // 10**9
-    # 📌 Debug: Show available columns
-print("📌 Columns in df before dropna:", df.columns.tolist())
+    # 🔧 Normalize column names
+    df.columns = [col.strip().lower() for col in df.columns]
 
-# ✅ Normalize column names to avoid typos or case issues
-df.columns = [col.strip().lower() for col in df.columns]
+    # 🔁 Rename time column to 'timestamp' if needed
+    if "time" in df.columns:
+        df.rename(columns={"time": "timestamp"}, inplace=True)
+    elif "datetime" in df.columns:
+        df.rename(columns={"datetime": "timestamp"}, inplace=True)
+    elif "date" in df.columns:
+        df.rename(columns={"date": "timestamp"}, inplace=True)
 
-# ✅ Rename the correct timestamp column if needed
-if "time" in df.columns:
-    df.rename(columns={"time": "timestamp"}, inplace=True)
-elif "datetime" in df.columns:
-    df.rename(columns={"datetime": "timestamp"}, inplace=True)
-elif "date" in df.columns:
-    df.rename(columns={"date": "timestamp"}, inplace=True)
+    # ✅ Ensure required columns are present
+    if "timestamp" not in df.columns or "close" not in df.columns:
+        raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
 
-# ✅ Ensure 'timestamp' and 'close' exist
-if "timestamp" not in df.columns or "close" not in df.columns:
-    raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
+    # ✅ Drop rows with missing values
+    df = df.dropna(subset=["timestamp", "close"]).copy()
 
-# ✅ Now drop missing values safely
-df = df.dropna(subset=["timestamp", "close"]).copy()
+    # 🧠 Convert timestamp to int64 for regression
+    df['timestamp'] = pd.to_datetime(df['timestamp'])  # ensure it's datetime
+    df['timestamp'] = df['timestamp'].astype(np.int64) // 10**9  # convert to UNIX time (seconds)
 
-    df['timestamp'] = df['timestamp'].astype(np.int64)
+    # ✅ Prepare data for model
+    X = df['timestamp'].values.reshape(-1, 1)
+    y = df['close'].values
 
+    # 📈 Train Linear Regression
     model = LinearRegression()
-    X = df[['timestamp']]
-    y = df['Close']
     model.fit(X, y)
-    future_ts = df['timestamp'].iloc[-1] + 900  # 15 min later
-    predicted_price = model.predict([[future_ts]])
-    return round(predicted_price[0], 2)
 
+    # ⏩ Predict next value (1 step into the future)
+    next_timestamp = np.array([[X[-1][0] + 900]])  # next 15-min = 900 seconds
+    predicted_price = model.predict(next_timestamp)[0]
+
+    return round(predicted_price, 2)
 
 
 def check_strategy(df):
