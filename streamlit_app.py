@@ -66,51 +66,37 @@ def add_indicators(df):
 
 
 def predict_price(df):
-    # 🔧 Normalize column names
+    # 🧼 Clean column names
     df.columns = [str(col).strip().lower() for col in df.columns]
 
-    # 🔁 Rename time column to 'timestamp' if needed
-    if "time" in df.columns:
-        df.rename(columns={"time": "timestamp"}, inplace=True)
-    elif "datetime" in df.columns:
-        df.rename(columns={"datetime": "timestamp"}, inplace=True)
-    elif "date" in df.columns:
-        df.rename(columns={"date": "timestamp"}, inplace=True)
+    # 🕒 Rename time-related column to 'timestamp'
+    for col in df.columns:
+        col_lower = str(col).lower()
+        if "time" in col_lower or "date" in col_lower:
+            df.rename(columns={col: "timestamp"}, inplace=True)
 
-    # ✅ Ensure required columns are present
-print("📌 Current columns in df:", df.columns.tolist())
-    # 🔁 Rename likely timestamp column
-for col in df.columns:
-    col_lower = str(col).lower()
-    if "time" in col_lower:
-        df.rename(columns={col: "timestamp"}, inplace=True)
-    elif "date" in col_lower:
-        df.rename(columns={col: "timestamp"}, inplace=True)
+    # ✅ Check if required columns exist
+    if "timestamp" not in df.columns or "close" not in df.columns:
+        print("❌ Columns found:", df.columns.tolist())
+        raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
 
-# ✅ Ensure the columns now exist
-if "timestamp" not in df.columns or "close" not in df.columns:
-    print("❌ Still missing expected columns.")
-    print("📌 Current columns in df:", df.columns.tolist())
-    raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
-
-    # ✅ Drop rows with missing values
+    # ✅ Drop missing values
     df = df.dropna(subset=["timestamp", "close"]).copy()
 
-    # 🧠 Convert timestamp to int64 for regression
-    df['timestamp'] = pd.to_datetime(df['timestamp'])  # ensure it's datetime
-    df['timestamp'] = df['timestamp'].astype(np.int64) // 10**9  # convert to UNIX time (seconds)
+    # 🧠 Convert timestamp to numeric (UNIX time)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["timestamp"] = df["timestamp"].astype(np.int64) // 10**9
 
-    # ✅ Prepare data for model
-    X = df['timestamp'].values.reshape(-1, 1)
-    y = df['close'].values
+    # 📊 Prepare model
+    X = df["timestamp"].values.reshape(-1, 1)
+    y = df["close"].values
 
-    # 📈 Train Linear Regression
     model = LinearRegression()
     model.fit(X, y)
 
-    # ⏩ Predict next value (1 step into the future)
-    next_timestamp = np.array([[X[-1][0] + 900]])  # next 15-min = 900 seconds
-    predicted_price = model.predict(next_timestamp)[0]
+    # 📈 Predict next 15-minute price
+    next_time = np.array([[X[-1][0] + 900]])  # next 15 min (in seconds)
+    predicted_price = model.predict(next_time)[0]
 
     return round(predicted_price, 2)
 
