@@ -67,7 +67,7 @@ def add_indicators(df):
 
 def predict_price(df):
     # 🔧 Normalize column names
-    df.columns = [col.strip().lower() for col in df.columns]
+    df.columns = [str(col).strip().lower() for col in df.columns]
 
     # 🔁 Rename time column to 'timestamp' if needed
     if "time" in df.columns:
