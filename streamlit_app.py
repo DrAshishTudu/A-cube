@@ -49,14 +49,18 @@ def add_indicators(df):
 
 
 def predict_price(df):
-    df['timestamp'] = df['Datetime'].astype(np.int64) // 10**9
+    df['timestamp'] = pd.to_datetime(df['Datetime'], errors='coerce').astype('int64') // 10**9
+    df = df.dropna(subset=["timestamp", "Close"]).copy()
+    df['timestamp'] = df['timestamp'].astype(np.int64)
+
     model = LinearRegression()
     X = df[['timestamp']]
     y = df['Close']
     model.fit(X, y)
-    future_ts = df['timestamp'].iloc[-1] + 900  # next 15 minutes
+    future_ts = df['timestamp'].iloc[-1] + 900  # 15 min later
     predicted_price = model.predict([[future_ts]])
     return round(predicted_price[0], 2)
+
 
 
 def check_strategy(df):
