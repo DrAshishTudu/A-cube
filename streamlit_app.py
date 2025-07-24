@@ -43,8 +43,9 @@ def fetch_data(symbol):
 
 
 def add_indicators(df):
-    # ✅ Flatten Close to 1D
-    df["Close"] = pd.Series(df["Close"].values.flatten(), index=df.index)
+    # 🛠 Ensure 'Close' is 1D
+    if isinstance(df["Close"].values, np.ndarray) and df["Close"].values.ndim > 1:
+        df["Close"] = pd.Series(df["Close"].values.flatten(), index=df.index)
 
     # ✅ Bollinger Bands
     df["bb_mid"] = df["Close"].rolling(BB_LENGTH).mean()
@@ -53,10 +54,11 @@ def add_indicators(df):
     df["bb_lower"] = df["bb_mid"] - BB_STD * df["bb_std"]
 
     # ✅ RSI
-    df["rsi"] = RSIIndicator(df["Close"]).rsi()
+    close_series = pd.Series(df["Close"].values.flatten(), index=df.index)
+    df["rsi"] = RSIIndicator(close_series).rsi()
 
     # ✅ MACD
-    macd = MACD(df["Close"])
+    macd = MACD(close_series)
     df["macd"] = macd.macd()
     df["macd_signal"] = macd.macd_signal()
 
