@@ -66,36 +66,42 @@ def add_indicators(df):
 
 
 def predict_price(df):
-    # 🧼 Clean column names
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
+
+    # 🧼 Step 1: Normalize column names
     df.columns = [str(col).strip().lower() for col in df.columns]
+    print("✅ Columns after cleanup:", df.columns.tolist())
 
-    # 🕒 Rename time-related column to 'timestamp'
-    for col in df.columns:
-        col_lower = str(col).lower()
-        if "time" in col_lower or "date" in col_lower:
-            df.rename(columns={col: "timestamp"}, inplace=True)
+    # 🔁 Step 2: Try to rename time-related column to 'timestamp'
+    if 'time' in df.columns:
+        df.rename(columns={'time': 'timestamp'}, inplace=True)
+    elif 'date' in df.columns:
+        df.rename(columns={'date': 'timestamp'}, inplace=True)
 
-    # ✅ Check if required columns exist
+    # 🧪 Step 3: Show columns again
+    print("🛠 Columns after possible renaming:", df.columns.tolist())
+
+    # 🚫 Step 4: Final check
     if "timestamp" not in df.columns or "close" not in df.columns:
-        print("❌ Columns found:", df.columns.tolist())
         raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
 
-    # ✅ Drop missing values
+    # ✅ Step 5: Drop missing
     df = df.dropna(subset=["timestamp", "close"]).copy()
 
-    # 🧠 Convert timestamp to numeric (UNIX time)
+    # Convert timestamp to Unix time
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df["timestamp"] = df["timestamp"].astype(np.int64) // 10**9
 
-    # 📊 Prepare model
+    # Train model
     X = df["timestamp"].values.reshape(-1, 1)
     y = df["close"].values
 
     model = LinearRegression()
     model.fit(X, y)
 
-    # 📈 Predict next 15-minute price
-    next_time = np.array([[X[-1][0] + 900]])  # next 15 min (in seconds)
+    # Predict for next 15 minutes
+    next_time = np.array([[X[-1][0] + 900]])
     predicted_price = model.predict(next_time)[0]
 
     return round(predicted_price, 2)
