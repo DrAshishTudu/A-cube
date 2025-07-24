@@ -36,8 +36,8 @@ def fetch_data(symbol):
 
 def add_indicators(df):
     bb = BollingerBands(close=df["Close"], window=BB_LENGTH, window_dev=BB_STD)
-    df["bb_upper"] = bb.bollinger_hband()
-    df["bb_lower"] = bb.bollinger_lband()
+    df["bb_upper"] = bb.bollinger_hband().squeeze()
+    df["bb_lower"] = bb.bollinger_lband().squeeze()
     df["rsi"] = RSIIndicator(df["Close"]).rsi()
     macd = MACD(df["Close"])
     df["macd"] = macd.macd()
