@@ -83,12 +83,24 @@ def predict_price(df):
     print("🛠 Columns after possible renaming:", df.columns.tolist())
 
     # 🚫 Step 4: Final check
-    if "timestamp" not in df.columns or "close" not in df.columns:
-        raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
+    # Try to auto-rename 'Time' or 'Date' to 'timestamp'
+for col in df.columns:
+    if "time" in col.lower() or "date" in col.lower():
+        df.rename(columns={col: "timestamp"}, inplace=True)
+
+# Try to rename 'Close' if it's something else
+for col in df.columns:
+    if col.lower() == "close":
+        df.rename(columns={col: "close"}, inplace=True)
+
+# Check again
+if "timestamp" not in df.columns or "close" not in df.columns:
+    print("🧪 DEBUG Columns in df:", df.columns.tolist())
+    raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
 
     # ✅ Step 5: Drop missing
     df = df.dropna(subset=["timestamp", "close"]).copy()
-
+    
     # Convert timestamp to Unix time
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df["timestamp"] = df["timestamp"].astype(np.int64) // 10**9
