@@ -43,7 +43,10 @@ def fetch_data(symbol):
 
 
 def add_indicators(df):
-    # ✅ Bollinger Bands (manual)
+    # 🔧 Ensure Close is 1D
+    df["Close"] = df["Close"].astype(float).squeeze()
+
+    # ✅ Bollinger Bands
     df["bb_mid"] = df["Close"].rolling(BB_LENGTH).mean()
     df["bb_std"] = df["Close"].rolling(BB_LENGTH).std()
     df["bb_upper"] = df["bb_mid"] + BB_STD * df["bb_std"]
