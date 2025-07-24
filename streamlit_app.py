@@ -44,12 +44,24 @@ def fetch_data(symbol):
 
 def add_indicators(df):
     bb = BollingerBands(close=df["Close"], window=BB_LENGTH, window_dev=BB_STD)
-    df["bb_upper"] = bb.bollinger_hband()
-    df["bb_lower"] = bb.bollinger_lband()
+
+    # Flatten 2D arrays to 1D Series
+    bb_upper = bb.bollinger_hband()
+    if isinstance(bb_upper.values, np.ndarray) and bb_upper.values.ndim > 1:
+        bb_upper = pd.Series(bb_upper.values.squeeze(), index=df.index)
+
+    bb_lower = bb.bollinger_lband()
+    if isinstance(bb_lower.values, np.ndarray) and bb_lower.values.ndim > 1:
+        bb_lower = pd.Series(bb_lower.values.squeeze(), index=df.index)
+
+    df["bb_upper"] = bb_upper
+    df["bb_lower"] = bb_lower
+
     df["rsi"] = RSIIndicator(df["Close"]).rsi()
     macd = MACD(df["Close"])
     df["macd"] = macd.macd()
     df["macd_signal"] = macd.macd_signal()
+
     return df
 
 
