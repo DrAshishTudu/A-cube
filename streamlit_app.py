@@ -30,7 +30,7 @@ TELEGRAM_CHAT_ID = os.getenv("Acube3Bot")
 def fetch_data(symbol):
     df = yf.download(symbol, interval=INTERVAL, period=RANGE)
     df.dropna(inplace=True)
-   df.reset_index(inplace=True)
+    df.reset_index(inplace=True)
 if "Datetime" not in df.columns:
     if "Date" in df.columns:
         df.rename(columns={"Date": "Datetime"}, inplace=True)
