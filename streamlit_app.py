@@ -44,14 +44,13 @@ def fetch_data(symbol):
 
 def add_indicators(df):
     bb = BollingerBands(close=df["Close"], window=BB_LENGTH, window_dev=BB_STD)
-    df["bb_upper"] = bb.bollinger_hband().values.ravel()
-    df["bb_lower"] = bb.bollinger_lband().values.ravel()
+    df["bb_upper"] = bb.bollinger_hband()
+    df["bb_lower"] = bb.bollinger_lband()
     df["rsi"] = RSIIndicator(df["Close"]).rsi()
     macd = MACD(df["Close"])
     df["macd"] = macd.macd()
     df["macd_signal"] = macd.macd_signal()
     return df
-
 
 
 
