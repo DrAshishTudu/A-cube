@@ -68,7 +68,7 @@ def add_indicators(df):
 
 def predict_price(df):
     df['timestamp'] = pd.to_datetime(df['Datetime'], errors='coerce').astype('int64') // 10**9
-    df = df.dropna(subset=["timestamp", "Close"]).copy()
+    df = df.dropna(subset=["Time", "Close"]).copy()
     df['timestamp'] = df['timestamp'].astype(np.int64)
 
     model = LinearRegression()
