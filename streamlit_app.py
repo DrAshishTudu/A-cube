@@ -43,8 +43,8 @@ def fetch_data(symbol):
 
 
 def add_indicators(df):
-    # 🔧 Ensure Close is 1D
-    df["Close"] = df["Close"].astype(float).squeeze()
+    # ✅ Flatten Close to 1D
+    df["Close"] = pd.Series(df["Close"].values.flatten(), index=df.index)
 
     # ✅ Bollinger Bands
     df["bb_mid"] = df["Close"].rolling(BB_LENGTH).mean()
