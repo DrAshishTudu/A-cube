@@ -68,7 +68,27 @@ def add_indicators(df):
 
 def predict_price(df):
     df['timestamp'] = pd.to_datetime(df['Datetime'], errors='coerce').astype('int64') // 10**9
-    df = df.dropna(subset=["Time", "Close"]).copy()
+    # 📌 Debug: Show available columns
+print("📌 Columns in df before dropna:", df.columns.tolist())
+
+# ✅ Normalize column names to avoid typos or case issues
+df.columns = [col.strip().lower() for col in df.columns]
+
+# ✅ Rename the correct timestamp column if needed
+if "time" in df.columns:
+    df.rename(columns={"time": "timestamp"}, inplace=True)
+elif "datetime" in df.columns:
+    df.rename(columns={"datetime": "timestamp"}, inplace=True)
+elif "date" in df.columns:
+    df.rename(columns={"date": "timestamp"}, inplace=True)
+
+# ✅ Ensure 'timestamp' and 'close' exist
+if "timestamp" not in df.columns or "close" not in df.columns:
+    raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
+
+# ✅ Now drop missing values safely
+df = df.dropna(subset=["timestamp", "close"]).copy()
+
     df['timestamp'] = df['timestamp'].astype(np.int64)
 
     model = LinearRegression()
