@@ -78,8 +78,20 @@ def predict_price(df):
         df.rename(columns={"date": "timestamp"}, inplace=True)
 
     # ✅ Ensure required columns are present
-    if "timestamp" not in df.columns or "close" not in df.columns:
-        raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
+print("📌 Current columns in df:", df.columns.tolist())
+    # 🔁 Rename likely timestamp column
+for col in df.columns:
+    col_lower = str(col).lower()
+    if "time" in col_lower:
+        df.rename(columns={col: "timestamp"}, inplace=True)
+    elif "date" in col_lower:
+        df.rename(columns={col: "timestamp"}, inplace=True)
+
+# ✅ Ensure the columns now exist
+if "timestamp" not in df.columns or "close" not in df.columns:
+    print("❌ Still missing expected columns.")
+    print("📌 Current columns in df:", df.columns.tolist())
+    raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
 
     # ✅ Drop rows with missing values
     df = df.dropna(subset=["timestamp", "close"]).copy()
