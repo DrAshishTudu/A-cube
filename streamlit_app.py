@@ -66,10 +66,7 @@ def add_indicators(df):
 
 
 def predict_price(df):
-    import numpy as np
-    from sklearn.linear_model import LinearRegression
-
-    # 🧼 Step 1: Normalize column names
+   # 🧼 Step 1: Normalize column names
     df.columns = [str(col).strip().lower() for col in df.columns]
     print("✅ Columns after cleanup:", df.columns.tolist())
 
