@@ -31,11 +31,16 @@ def fetch_data(symbol):
     df = yf.download(symbol, interval=INTERVAL, period=RANGE)
     df.dropna(inplace=True)
     df.reset_index(inplace=True)
-if "Datetime" not in df.columns:
-    if "Date" in df.columns:
-        df.rename(columns={"Date": "Datetime"}, inplace=True)
-    elif "index" in df.columns:
-        df.rename(columns={"index": "Datetime"}, inplace=True)
+
+    # ✅ Fix for missing Datetime column
+    if "Datetime" not in df.columns:
+        if "Date" in df.columns:
+            df.rename(columns={"Date": "Datetime"}, inplace=True)
+        elif "index" in df.columns:
+            df.rename(columns={"index": "Datetime"}, inplace=True)
+
+    return df
+
 
 def add_indicators(df):
     bb = BollingerBands(close=df["Close"], window=BB_LENGTH, window_dev=BB_STD)
