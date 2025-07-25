@@ -32,9 +32,10 @@ def fetch_data(symbol):
     df.dropna(inplace=True)
     df.reset_index(inplace=True)
 
-    # Rename the datetime column properly
+    # ✅ Ensure all column names are strings and rename datetime column
     for col in df.columns:
-        if "date" in col.lower() or "time" in col.lower() or "index" in col.lower():
+        col_str = str(col).lower()
+        if "date" in col_str or "time" in col_str or "index" in col_str:
             df.rename(columns={col: "Datetime"}, inplace=True)
             break
 
