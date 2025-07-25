@@ -106,12 +106,19 @@ def predict_price(df):
 
 
 def check_strategy(df):
+    if "bb_upper" not in df.columns or len(df) < 2:
+        return False
+
     c24 = df.iloc[-2]
-    upper_bb = c24["bb_upper"]
-    f1 = c24["Open"] > upper_bb
-    f2 = c24["Close"] > upper_bb
+
+    if pd.isna(c24["bb_upper"]):
+        return False
+
+    f1 = c24["Open"] > c24["bb_upper"]
+    f2 = c24["Close"] > c24["bb_upper"]
     f3 = c24["Close"] > c24["Open"]
     return f1 and f2 and f3
+
 
 
 def send_telegram(message):
