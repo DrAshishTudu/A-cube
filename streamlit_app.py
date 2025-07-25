@@ -27,18 +27,19 @@ TELEGRAM_CHAT_ID = os.getenv("Acube3Bot")
 
 
 # === FUNCTIONS ===
-
 def fetch_data(symbol):
     df = yf.download(symbol, interval=INTERVAL, period=RANGE)
     df.dropna(inplace=True)
-    df.reset_index(inplace=True)
 
-    for col in df.columns:
-        col_str = str(col).lower()
-        if "date" in col_str or "time" in col_str or "index" in col_str:
-            df.rename(columns={col: "Datetime"}, inplace=True)
-            break
+    # ✅ Ensure Datetime column exists
+    if df.index.name is not None:
+        df["Datetime"] = df.index
+    else:
+        df.reset_index(inplace=True)
+        if "index" in df.columns:
+            df.rename(columns={"index": "Datetime"}, inplace=True)
 
+    df.reset_index(drop=True, inplace=True)
     return df
 
 
