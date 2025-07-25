@@ -6,4 +6,4 @@ plotly
 ta
 scikit-learn
 streamlit-autorefresh
-request
+requests
