@@ -54,20 +54,21 @@ def fetch_data(symbol):
 
 
 def add_indicators(df):
-    if "Close" not in df.columns:
-        raise KeyError("❌ 'Close' column missing in DataFrame.")
-
-    df["bb_mid"] = df["Close"].rolling(BB_LENGTH).mean()
-    df["bb_std"] = df["Close"].rolling(BB_LENGTH).std()
-    df["bb_upper"] = df["bb_mid"] + BB_STD * df["bb_std"]
-    df["bb_lower"] = df["bb_mid"] - BB_STD * df["bb_std"]
-
     close_series = pd.Series(df["Close"].values.flatten(), index=df.index)
-    df["rsi"] = RSIIndicator(close_series).rsi()
 
+    # ✅ Bollinger Bands
+    bb = BollingerBands(close=close_series, window=BB_LENGTH, window_dev=BB_STD)
+    df["bb_upper"] = bb.bollinger_hband().values.ravel()
+    df["bb_lower"] = bb.bollinger_lband().values.ravel()
+    df["bb_mid"] = bb.bollinger_mavg().values.ravel()
+
+    # ✅ RSI
+    df["rsi"] = RSIIndicator(close_series).rsi().values.ravel()
+
+    # ✅ MACD
     macd = MACD(close_series)
-    df["macd"] = macd.macd()
-    df["macd_signal"] = macd.macd_signal()
+    df["macd"] = macd.macd().values.ravel()
+    df["macd_signal"] = macd.macd_signal().values.ravel()
 
     return df
 
