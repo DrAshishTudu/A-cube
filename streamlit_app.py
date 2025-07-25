@@ -53,20 +53,26 @@ def fetch_data(symbol):
     return df
 
 
+from ta.volatility import BollingerBands
+from ta.momentum import RSIIndicator
+from ta.trend import MACD
+
 def add_indicators(df):
+    # Flatten Close column if needed
     close_series = pd.Series(df["Close"].values.flatten(), index=df.index)
 
     # ✅ Bollinger Bands
-    bb = BollingerBands(close=close_series, window=BB_LENGTH, window_dev=BB_STD)
+    bb = BollingerBands(close=close_series, window=20, window_dev=2)
     df["bb_upper"] = bb.bollinger_hband().values.ravel()
     df["bb_lower"] = bb.bollinger_lband().values.ravel()
-    df["bb_mid"] = bb.bollinger_mavg().values.ravel()
+    df["bb_mid"]   = bb.bollinger_mavg().values.ravel()
 
     # ✅ RSI
-    df["rsi"] = RSIIndicator(close_series).rsi().values.ravel()
+    rsi = RSIIndicator(close=close_series)
+    df["rsi"] = rsi.rsi().values.ravel()
 
     # ✅ MACD
-    macd = MACD(close_series)
+    macd = MACD(close=close_series)
     df["macd"] = macd.macd().values.ravel()
     df["macd_signal"] = macd.macd_signal().values.ravel()
 
