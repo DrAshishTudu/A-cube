@@ -29,17 +29,27 @@ TELEGRAM_CHAT_ID = os.getenv("Acube3Bot")
 # === FUNCTIONS ===
 def fetch_data(symbol):
     df = yf.download(symbol, interval=INTERVAL, period=RANGE)
+    
+    # Drop rows with any missing values
     df.dropna(inplace=True)
 
-    # ✅ Ensure Datetime column exists
-    if df.index.name is not None:
-        df["Datetime"] = df.index
-    else:
-        df.reset_index(inplace=True)
-        if "index" in df.columns:
-            df.rename(columns={"index": "Datetime"}, inplace=True)
+    # ✅ Force Datetime column
+    if isinstance(df.index, pd.DatetimeIndex):
+        df = df.copy()
+        df['Datetime'] = df.index
+    elif 'Datetime' not in df.columns:
+        # Try renaming known time columns
+        for col in df.columns:
+            if "date" in col.lower() or "time" in col.lower() or "index" in col.lower():
+                df.rename(columns={col: "Datetime"}, inplace=True)
+                break
 
-    df.reset_index(drop=True, inplace=True)
+    # Final fallback
+    if 'Datetime' not in df.columns:
+        st.warning(f"❌ Datetime column could not be identified in {symbol}")
+    else:
+        df.reset_index(drop=True, inplace=True)
+
     return df
 
 
