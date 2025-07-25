@@ -32,12 +32,11 @@ def fetch_data(symbol):
     df.dropna(inplace=True)
     df.reset_index(inplace=True)
 
-    # ✅ Fix for missing Datetime column
-    if "Datetime" not in df.columns:
-        if "Date" in df.columns:
-            df.rename(columns={"Date": "Datetime"}, inplace=True)
-        elif "index" in df.columns:
-            df.rename(columns={"index": "Datetime"}, inplace=True)
+    # Rename the datetime column properly
+    for col in df.columns:
+        if "date" in col.lower() or "time" in col.lower() or "index" in col.lower():
+            df.rename(columns={col: "Datetime"}, inplace=True)
+            break
 
     return df
 
@@ -115,7 +114,6 @@ def check_strategy(df):
     return f1 and f2 and f3
 
 
-
 def send_telegram(message):
     if TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -124,12 +122,18 @@ def send_telegram(message):
 
 
 def plot_chart(df, symbol):
-    fig = go.Figure(data=[go.Candlestick(x=df['Datetime'],
-                                         open=df['Open'],
-                                         high=df['High'],
-                                         low=df['Low'],
-                                         close=df['Close'],
-                                         name="Candlesticks")])
+    if "Datetime" not in df.columns:
+        st.error(f"❌ Datetime column missing in {symbol}")
+        return
+
+    fig = go.Figure(data=[go.Candlestick(
+        x=df['Datetime'],
+        open=df['Open'],
+        high=df['High'],
+        low=df['Low'],
+        close=df['Close'],
+        name="Candlesticks"
+    )])
     fig.add_trace(go.Scatter(x=df['Datetime'], y=df['bb_upper'], line=dict(color='orange'), name="BB Upper"))
     fig.add_trace(go.Scatter(x=df['Datetime'], y=df['bb_lower'], line=dict(color='blue'), name="BB Lower"))
     fig.update_layout(title=symbol, xaxis_rangeslider_visible=False)
