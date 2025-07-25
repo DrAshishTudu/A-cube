@@ -66,39 +66,34 @@ def add_indicators(df):
 
 
 def predict_price(df):
-    # 🧼 Step 1: Normalize column names
+    # Normalize column names
     df.columns = [str(col).strip().lower() for col in df.columns]
 
-    # 🔁 Step 2: Rename 'time' or 'date' to 'timestamp'
+    # Try renaming timestamp column
     for col in df.columns:
         if "time" in col or "date" in col:
             df.rename(columns={col: "timestamp"}, inplace=True)
-            break
-
-    # 🔁 Step 3: Rename 'close' if needed
+    
+    # Rename close column if needed
     for col in df.columns:
         if "close" in col and col != "close":
             df.rename(columns={col: "close"}, inplace=True)
-            break
 
-    # 🚫 Step 4: Check required columns
+    # Final check
     if "timestamp" not in df.columns or "close" not in df.columns:
         raise KeyError("❌ Required columns 'timestamp' or 'close' not found in DataFrame.")
 
-    # ✅ Step 5: Clean + convert time
     df = df.dropna(subset=["timestamp", "close"]).copy()
-    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
-    df = df.dropna(subset=["timestamp"])
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
     df["timestamp"] = df["timestamp"].astype(np.int64) // 10**9
 
-    # ✅ Step 6: Fit linear model
     X = df["timestamp"].values.reshape(-1, 1)
     y = df["close"].values
 
     model = LinearRegression()
     model.fit(X, y)
 
-    # ✅ Step 7: Predict 15 mins ahead
     next_time = np.array([[X[-1][0] + 900]])
     predicted_price = model.predict(next_time)[0]
 
